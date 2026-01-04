@@ -9,19 +9,41 @@ Backend API for the Micro-Task and Earning Platform built with Node.js, Express,
 npm install
 ```
 
-### 2. Configure Environment Variables
-Create a `.env` file in the root directory:
+### 2. MongoDB Setup
+You need a MongoDB database. You can use:
+- **MongoDB Atlas** (Cloud): https://www.mongodb.com/atlas
+- **Local MongoDB**: Install from https://www.mongodb.com/try/download/community
+
+For MongoDB Atlas:
+1. Create a free account
+2. Create a new cluster
+3. Get your connection string from "Connect" > "Connect your application"
+4. Replace `<username>` and `<password>` with your database user credentials
+
+### 3. Stripe Setup (for payments)
+1. Create a Stripe account at https://stripe.com
+2. Get your secret key from the dashboard
+3. Use test keys for development
+
+### 4. Configure Environment Variables
+Update the `.env` file in the root directory:
 
 ```env
 PORT=5000
 NODE_ENV=development
-MONGODB_URI=your_mongodb_connection_string
-JWT_SECRET=your_jwt_secret_key
-STRIPE_SECRET_KEY=your_stripe_secret_key
+MONGODB_URI=mongodb+srv://your_username:your_password@cluster0.kpmcxd4.mongodb.net/microtask?retryWrites=true&w=majority
+JWT_SECRET=your_secure_jwt_secret_here
+STRIPE_SECRET_KEY=sk_test_your_stripe_secret_key
 CLIENT_URL=http://localhost:5173
 ```
 
-### 3. Run the Server
+**Important**: Replace the placeholder values with your actual credentials:
+- `your_username`: Your MongoDB username
+- `your_password`: Your MongoDB password
+- `your_secure_jwt_secret_here`: A random string for JWT signing
+- `sk_test_your_stripe_secret_key`: Your Stripe secret key
+
+### 5. Run the Server
 ```bash
 # Development mode with nodemon
 npm run dev
@@ -30,7 +52,136 @@ npm run dev
 npm start
 ```
 
-## 📁 Project Structure
+### 6. Create Admin User (Optional)
+After setting up the database, you can create an admin user by running this script in MongoDB shell or MongoDB Compass:
+
+```javascript
+db.users.insertOne({
+  name: "Admin User",
+  email: "admin@example.com",
+  photoURL: "",
+  role: "Admin",
+  coin: 0,
+  firebaseUID: "admin-firebase-uid",
+  createdAt: new Date(),
+  updatedAt: new Date()
+});
+```
+
+Or you can manually change a user's role to "Admin" in the database.
+
+## 🔐 Authentication
+
+The API uses Firebase Authentication for user registration/login, with JWT tokens for API authorization.
+
+## 💳 Payment Integration
+
+Stripe is integrated for coin purchases. The system supports:
+- 10 coins = $1
+- 150 coins = $10
+- 500 coins = $20
+- 1000 coins = $35
+
+## 📊 API Endpoints
+
+### Authentication
+- `POST /api/auth/register-or-login` - Register/Login user
+- `GET /api/auth/verify` - Verify JWT token
+
+### Users
+- `GET /api/users/top-workers` - Get top 6 workers
+- `GET /api/users/all` - Get all users (Admin)
+- `PATCH /api/users/:id/role` - Update user role (Admin)
+- `DELETE /api/users/:id` - Delete user (Admin)
+- `GET /api/users/stats/admin` - Admin dashboard stats
+
+### Tasks
+- `POST /api/tasks/add` - Add new task (Buyer)
+- `GET /api/tasks/list` - Get available tasks (Worker)
+- `GET /api/tasks/my-tasks` - Get buyer's tasks (Buyer)
+- `GET /api/tasks/buyer/stats` - Buyer dashboard stats
+- `DELETE /api/tasks/:id` - Delete task (Admin)
+
+### Submissions
+- `POST /api/submissions/submit` - Submit task (Worker)
+- `GET /api/submissions/pending` - Get pending submissions (Buyer)
+- `GET /api/submissions/my-submissions` - Get worker's submissions (Worker)
+- `GET /api/submissions/approved` - Get approved submissions (Worker)
+- `PATCH /api/submissions/:id/approve` - Approve submission (Buyer)
+- `PATCH /api/submissions/:id/reject` - Reject submission (Buyer)
+- `GET /api/submissions/worker/stats` - Worker dashboard stats
+
+### Payments
+- `POST /api/payments/create-payment-intent` - Create Stripe payment intent
+- `POST /api/payments/confirm-payment` - Confirm payment and add coins
+- `GET /api/payments/history` - Get payment history (Buyer)
+
+### Withdrawals
+- `POST /api/withdrawals/request` - Request withdrawal (Worker)
+- `GET /api/withdrawals/pending` - Get pending withdrawals (Admin)
+- `PATCH /api/withdrawals/:id/approve` - Approve withdrawal (Admin)
+
+### Notifications
+- `GET /api/notifications` - Get user notifications
+- `GET /api/notifications/unread-count` - Get unread notification count
+- `PATCH /api/notifications/:id/read` - Mark notification as read
+
+## 🚀 Deployment
+
+### Environment Variables for Production
+```env
+NODE_ENV=production
+MONGODB_URI=your_production_mongodb_uri
+JWT_SECRET=your_secure_jwt_secret
+STRIPE_SECRET_KEY=your_stripe_live_secret_key
+CLIENT_URL=your_deployed_client_url
+```
+
+### Deploy to Server
+1. Push code to GitHub
+2. Use services like Heroku, Railway, or Vercel for deployment
+3. Set environment variables in your hosting platform
+4. Make sure MongoDB Atlas allows connections from your server IP
+
+## 📝 Features Implemented
+
+- ✅ User Authentication (Firebase + JWT)
+- ✅ Role-Based Authorization (Worker, Buyer, Admin)
+- ✅ Task Management
+- ✅ Submission System
+- ✅ Payment Integration (Stripe)
+- ✅ Withdrawal System
+- ✅ Notification System
+- ✅ Dashboard Statistics
+- ✅ Pagination for Submissions
+- ✅ Top Workers Display
+- ✅ Admin User Management
+- ✅ Task Management for Admins
+
+## 🐛 Troubleshooting
+
+### MongoDB Connection Issues
+- Ensure your IP is whitelisted in MongoDB Atlas
+- Check username/password in connection string
+- Verify cluster is running
+
+### Stripe Payment Issues
+- Use test keys for development
+- Check webhook endpoints if needed
+- Verify client_secret is sent correctly
+
+### Authentication Issues
+- Ensure Firebase config is correct
+- Check JWT secret is consistent
+- Verify token expiration (7 days)
+
+---
+
+**Admin Credentials for Demo:**
+- Email: admin@example.com
+- Password: (Set in database)
+
+*Note: Create the admin user in your database as shown above.*
 
 ```
 PH-A13-server/

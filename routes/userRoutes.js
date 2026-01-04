@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
+const Payment = require('../models/Payment');
 const verifyToken = require('../middleware/verifyToken');
 const verifyAdmin = require('../middleware/verifyAdmin');
 
@@ -148,12 +149,17 @@ router.get('/stats/admin', verifyToken, verifyAdmin, async (req, res) => {
     const users = await User.find();
     const totalCoins = users.reduce((sum, user) => sum + user.coin, 0);
 
+    // Get total payments
+    const payments = await Payment.find();
+    const totalPayments = payments.reduce((sum, payment) => sum + payment.amount, 0);
+
     res.json({
       success: true,
       stats: {
         totalWorkers,
         totalBuyers,
-        totalCoins
+        totalCoins,
+        totalPayments
       }
     });
   } catch (error) {
